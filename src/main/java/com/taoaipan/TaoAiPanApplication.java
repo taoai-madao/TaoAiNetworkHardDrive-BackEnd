@@ -17,8 +17,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 @SpringBootApplication(scanBasePackages = {"com.taoaipan"})
 public class TaoAiPanApplication {
+
     public static void main(String[] args) {
         SpringApplication.run(TaoAiPanApplication.class, args);
     }
-
 }
