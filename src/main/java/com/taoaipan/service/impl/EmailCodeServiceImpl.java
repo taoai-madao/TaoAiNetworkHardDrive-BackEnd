@@ -83,8 +83,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 		SimplePage page = new SimplePage(param.getPageNo(), count, pageSize);
 		param.setSimplePage(page);
 		List<EmailCode> list = this.findListByParam(param);
-		PaginationResultVO<EmailCode> result = new PaginationResultVO(count, page.getPageSize(), page.getPageNo(), page.getPageTotal(), list);
-		return result;
+		return new PaginationResultVO<EmailCode>(count, page.getPageSize(), page.getPageNo(), page.getPageTotal(), list);
 	}
 
 	/**
