@@ -1,6 +1,11 @@
 package com.taoaipan.entity.vo;
 
-
+/**
+ * @version 1.0
+ * @Author TaoAi
+ * @Date 2023/12/5 09：42
+ * @description 通用响应对象
+ */
 public class ResponseVO<T> {
     private String status;
     private Integer code;

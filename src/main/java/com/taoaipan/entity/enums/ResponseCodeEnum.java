@@ -1,6 +1,11 @@
 package com.taoaipan.entity.enums;
 
-
+/**
+ * @version 1.0
+ * @Author TaoAi
+ * @Date 2023/12/7 10:42
+ * @description 响应类型状态码
+ */
 public enum ResponseCodeEnum {
     CODE_200(200, "请求成功"),
     CODE_404(404, "请求地址不存在"),

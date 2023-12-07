@@ -1,5 +1,7 @@
 package com.taoaipan.utils;
 import com.taoaipan.exception.BusinessException;
+import org.apache.commons.lang3.RandomStringUtils;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
@@ -49,5 +51,14 @@ public class StringTools {
             return true;
         }
         return false;
+    }
+
+    /**
+     * 生成随机数
+     * @param count
+     * @return 随机数
+     */
+    public static final String getRandomString(Integer count) {
+        return RandomStringUtils.random(count, true, true);
     }
 }

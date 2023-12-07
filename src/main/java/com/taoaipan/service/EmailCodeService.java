@@ -69,4 +69,10 @@ public interface EmailCodeService {
 	 */
 	Integer deleteEmailCodeByEmailAndCode(String email,String code);
 
+	/**
+	 * 邮箱验证码发送
+	 * @param email 邮箱
+	 * @param type 邮箱验证码用途标记
+	 */
+    void sendEmailCode(String email, Integer type);
 }
