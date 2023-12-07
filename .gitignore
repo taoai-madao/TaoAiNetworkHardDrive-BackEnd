@@ -63,6 +63,8 @@ Temporary Items
 *CodeGeneratorFile
 *temporary
 
+application.properties
+
 CodeGenerator.java
 TestController.java
 application-parameter.properties
