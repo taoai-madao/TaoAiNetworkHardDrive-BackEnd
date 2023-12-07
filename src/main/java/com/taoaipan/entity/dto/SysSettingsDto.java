@@ -8,7 +8,7 @@ import java.io.Serializable;
  * @version 1.0
  * @Author TaoAi
  * @Date 2023/12/7 11:15
- * @description 存储系统设置信息的Dto对象
+ * @description 邮件DTO对象
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SysSettingsDto implements Serializable {
@@ -20,7 +20,7 @@ public class SysSettingsDto implements Serializable {
     /**
      * 注册发送邮件内容
      */
-    private String registerEmailContent = "你好，您的邮箱验证码是：%s，15分钟有效";
+    private String registerEmailContent = "您好！感谢您使用本产品，您的账号正在进行邮箱验证，验证码为：%s，有效期：15分钟，此为系统邮件，请勿回复 —— Please do not reply to this system email";
 
     /**
      * 用户初始化空间大小 5M
