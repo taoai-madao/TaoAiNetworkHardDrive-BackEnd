@@ -1,7 +1,12 @@
 package com.taoaipan.exception;
 import com.taoaipan.entity.enums.ResponseCodeEnum;
 
-
+/**
+ * @version 1.0
+ * @Author TaoAi
+ * @Date 2023/12/5 10:09
+ * @description 自定义业务异常类
+ */
 public class BusinessException extends RuntimeException {
 
     private ResponseCodeEnum codeEnum;
