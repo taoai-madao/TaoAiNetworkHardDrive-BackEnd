@@ -50,4 +50,10 @@ package com.taoaipan.mappers;
        * deleteByParam:(多条件删除)
      */
      Integer deleteByParam(@Param("query") P p);
-}
+
+	 /**
+	  * 将该邮箱之前验证码无效化
+	  * @param email 邮箱号
+	  */
+	 void disableEmailCode(@Param("email") String email);
+ }
