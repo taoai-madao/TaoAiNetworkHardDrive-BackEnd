@@ -123,4 +123,18 @@ public interface UserInfoService {
 	 */
 	Integer deleteUserInfoByQqOpenId(String qqOpenId);
 
+	/**
+	 * 用户注册
+	 * @param email 邮箱
+	 * @param nickName 昵称
+	 * @param password 密码
+	 * @param emailCode 邮箱验证码
+	 */
+    void register(String email, String nickName, String password, String emailCode);
+
+	/**
+	 * 生成用户不重复 id
+	 * @return 用户id
+	 */
+	String userIdCreate();
 }

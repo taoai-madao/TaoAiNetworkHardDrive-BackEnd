@@ -9,6 +9,7 @@ import com.taoaipan.entity.po.EmailCode;
 import com.taoaipan.entity.vo.ResponseVO;
 import com.taoaipan.exception.BusinessException;
 import com.taoaipan.service.EmailCodeService;
+import com.taoaipan.service.UserInfoService;
 import org.apache.ibatis.annotations.Param;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.mail.Session;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
@@ -35,6 +37,8 @@ public class AccountController extends ABaseController {
 
     @Resource
     private EmailCodeService emailCodeService;
+    @Resource
+    private UserInfoService userInfoService;
 
     /**
      * 图片验证码生成
@@ -82,6 +86,25 @@ public class AccountController extends ABaseController {
             return getSuccessResponseVO(null);
         } finally {
             session.removeAttribute(Constants.CHECK_CODE_KEY_EMAIL);
+        }
+    }
+
+    @RequestMapping("/register")
+    @GlobalInterceptor(checkLogin = false, checkParams = true)
+    public ResponseVO register(HttpSession session,
+                               @VerifyParam(required = true, regex = VerifyRegexEnum.EMAIL, max = 150) String email,
+                               @VerifyParam(required = true, max = 20) String nickName,
+                               @VerifyParam(required = true, regex = VerifyRegexEnum.PASSWORD, min = 8, max = 198) String password,
+                               @VerifyParam(required = true) String checkCode,
+                               @VerifyParam(required = true) String emailCode){
+        try {
+            if (!checkCode.equalsIgnoreCase((String) session.getAttribute(Constants.CHECK_CODE_KEY))){
+                throw new BusinessException("图片验证码不正确");
+            }
+            userInfoService.register(email, nickName, password, emailCode);
+            return getSuccessResponseVO(null);
+        } finally {
+            session.removeAttribute(Constants.CHECK_CODE_KEY);
         }
     }
 }

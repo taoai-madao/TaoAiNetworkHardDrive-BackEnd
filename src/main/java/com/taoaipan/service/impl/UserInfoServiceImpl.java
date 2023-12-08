@@ -1,9 +1,17 @@
 package com.taoaipan.service.impl;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
 
+import com.taoaipan.component.RedisComponent;
+import com.taoaipan.entity.constants.Constants;
+import com.taoaipan.entity.dto.SysSettingsDto;
+import com.taoaipan.entity.enums.UserStatusEnum;
+import com.taoaipan.exception.BusinessException;
+import com.taoaipan.service.EmailCodeService;
+import org.apache.catalina.User;
 import org.springframework.stereotype.Service;
 
 import com.taoaipan.entity.enums.PageSize;
@@ -14,6 +22,7 @@ import com.taoaipan.entity.query.SimplePage;
 import com.taoaipan.mappers.UserInfoMapper;
 import com.taoaipan.service.UserInfoService;
 import com.taoaipan.utils.StringTools;
+import org.springframework.transaction.annotation.Transactional;
 
 
 /**
@@ -24,6 +33,10 @@ public class UserInfoServiceImpl implements UserInfoService {
 
 	@Resource
 	private UserInfoMapper<UserInfo, UserInfoQuery> userInfoMapper;
+	@Resource
+	private EmailCodeService emailCodeService;
+	@Resource
+	private RedisComponent redisComponent;
 
 	/**
 	 * 根据条件查询列表
@@ -198,5 +211,63 @@ public class UserInfoServiceImpl implements UserInfoService {
 	@Override
 	public Integer deleteUserInfoByQqOpenId(String qqOpenId) {
 		return this.userInfoMapper.deleteByQqOpenId(qqOpenId);
+	}
+
+	/**
+	 * 用户注册
+	 * @param email 邮箱
+	 * @param nickName 昵称
+	 * @param password 密码
+	 * @param emailCode 邮箱验证码
+	 */
+    @Override
+	@Transactional(rollbackFor = Exception.class)
+    public void register(String email, String nickName, String password, String emailCode) {
+		UserInfo userInfo = userInfoMapper.selectByEmail(email);
+		if (userInfo != null) {
+			throw new BusinessException("邮箱账号已存在");
+		}
+		UserInfo userNickName = userInfoMapper.selectByNickName(nickName);
+		if (userNickName != null){
+			throw new BusinessException("用户昵称已存在");
+		}
+		// 校验邮箱验证码
+		emailCodeService.checkCode(email, emailCode);
+		// 校验信息没有问题后创建用户对象并存储它
+		// 使用随机数方法生成用户id，并对这个id从数据库判断是否重复
+		String userId = userIdCreate();
+		userInfo = new UserInfo();
+		userInfo.setUserId(userId);
+		userInfo.setNickName(nickName);
+		userInfo.setEmail(email);
+		userInfo.setPassword(StringTools.encodeByMD5(password));
+		userInfo.setJoinTime(new Date());
+		userInfo.setStatus(UserStatusEnum.ENABLE.getStatus());
+		SysSettingsDto sysSettingsDto = redisComponent.getSysSettingsDto();
+		userInfo.setTotalSpace(sysSettingsDto.getUserInitUseSpace() * Constants.MB);
+		userInfo.setUseSpace(0L);
+		userInfoMapper.insert(userInfo);
+    }
+
+	/**
+	 * 生成用户不重复id
+	 * @return 用户id
+	 */
+	@Override
+	public String userIdCreate() {
+		// TODO 可以使用 Stream 进行优化这段逻辑
+		String id = StringTools.getRandomNumber(Constants.LENGTH_10);
+		while (!checkVariableDuplicate(id)) {
+			id = StringTools.getRandomString(Constants.LENGTH_10);
+		}
+		return id;
+	}
+
+	/**
+	 * 判断用户 id 是否重复
+	 * @return true / false
+	 */
+	boolean checkVariableDuplicate(String id){
+		return userInfoMapper.selectByUserId(id) == null;
 	}
 }

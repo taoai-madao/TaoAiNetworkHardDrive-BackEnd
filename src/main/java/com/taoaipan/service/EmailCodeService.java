@@ -75,4 +75,11 @@ public interface EmailCodeService {
 	 * @param type 邮箱验证码用途标记
 	 */
     void sendEmailCode(String email, Integer type);
+
+	/**
+	 * 校验邮箱验证码是否正确
+	 * @param email 邮箱
+	 * @param code 邮箱验证码
+	 */
+	void checkCode(String email, String code);
 }

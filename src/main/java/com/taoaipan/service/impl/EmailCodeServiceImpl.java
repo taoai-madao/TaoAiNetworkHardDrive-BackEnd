@@ -167,7 +167,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 	@Transactional(rollbackFor = Exception.class)
     public void sendEmailCode(String toEmail, Integer type) {
 		// 根据type判断验证码用途, 注册的话判断邮箱在数据库是否已经存在
-		if (type == Constants.ZERO) {
+		if (type.equals(Constants.ZERO)) {
 			UserInfo userInfo = userInfoMapper.selectByEmail(toEmail);
 			if (userInfo != null) {
 				throw new BusinessException("邮箱已经存在");
@@ -190,6 +190,24 @@ public class EmailCodeServiceImpl implements EmailCodeService {
     }
 
 	/**
+	 * 邮箱验证码校验
+	 * @param email 邮箱
+	 * @param code 邮箱验证码
+	 */
+	@Override
+	public void checkCode(String email, String code) {
+		EmailCode emailCode = emailCodeMapper.selectByEmailAndCode(email, code);
+		if (emailCode == null) {
+			throw new BusinessException("邮箱验证码不正确");
+		}
+		// 使用当前的时间减去邮件创建的时间，判断是否大于设置的时间
+		if (emailCode.getStatus() == 1 || System.currentTimeMillis() - emailCode.getCreateTime().getTime() > Constants.LENGTH_15 * 1000 * 60){
+			throw new BusinessException("邮箱验证码已失效");
+		}
+		emailCodeMapper.disableEmailCode(email);
+	}
+
+	/**
 	 * 邮件发送函数
 	 * @param toEmail 发往的邮箱
 	 * @param code 邮箱验证码
@@ -203,7 +221,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 			helper.setFrom(appConfig.getSendUserName());
 			//邮件收件人 1或多个
 			helper.setTo(toEmail);
-
+			// 通过Redis获取邮件信息设置
 			SysSettingsDto sysSettingsDto = redisComponent.getSysSettingsDto();
 
 			//邮件主题

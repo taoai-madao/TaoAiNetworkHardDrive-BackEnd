@@ -76,3 +76,4 @@ ChannelBizBrandWallClient.java
 
 # yml
 *.yml
+application.properties

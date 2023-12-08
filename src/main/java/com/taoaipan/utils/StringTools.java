@@ -1,5 +1,6 @@
 package com.taoaipan.utils;
 import com.taoaipan.exception.BusinessException;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import java.lang.reflect.Field;
@@ -8,6 +9,19 @@ import java.lang.reflect.Method;
 
 public class StringTools {
 
+    /**
+     * 字符转md5
+     * @param originString 字符串
+     * @return 转换后的值
+     */
+    public static String encodeByMD5(String originString) {
+        return StringTools.isEmpty(originString) ? null : DigestUtils.md5Hex(originString);
+    }
+
+    /**
+     * 参数校验
+     * @param param 参数
+     */
     public static void checkParam(Object param) {
         try {
             Field[] fields = param.getClass().getDeclaredFields();
@@ -33,6 +47,11 @@ public class StringTools {
         }
     }
 
+    /**
+     * 首字符大写
+     * @param field 字符串
+     * @return 字符串
+     */
     public static String upperCaseFirstLetter(String field) {
         if (isEmpty(field)) {
             return field;
@@ -44,6 +63,11 @@ public class StringTools {
         return field.substring(0, 1).toUpperCase() + field.substring(1);
     }
 
+    /**
+     * 判断是否为空
+     * @param str 字符串
+     * @return 布尔
+     */
     public static boolean isEmpty(String str) {
         if (null == str || "".equals(str) || "null".equals(str) || "\u0000".equals(str)) {
             return true;
@@ -54,11 +78,20 @@ public class StringTools {
     }
 
     /**
-     * 生成随机数
-     * @param count
-     * @return 随机数
+     * 生成随机字符串
+     * @param count 长度
+     * @return 随机字符串吧
      */
     public static final String getRandomString(Integer count) {
         return RandomStringUtils.random(count, true, true);
+    }
+
+    /**
+     * 生成随机数
+     * @param count 长度
+     * @return 随机数
+     */
+    public static final String getRandomNumber(Integer count) {
+        return RandomStringUtils.random(count, false, true);
     }
 }
