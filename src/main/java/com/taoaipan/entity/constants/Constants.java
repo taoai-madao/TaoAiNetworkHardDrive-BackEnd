@@ -34,20 +34,16 @@ public class Constants {
     public static final String REDIS_KEY_USER_FILE_TEMP_SIZE = "taoaipan:user:file:temp:";
 
     /**
-     * Redis Key
-     */
-    /**
-     * 过期时间 1分钟
+     * Redis date
      */
     public static final Integer REDIS_KEY_EXPIRES_ONE_MIN = 60;
-    /**
-     * 过期时间 1天
-     */
     public static final Integer REDIS_KEY_EXPIRES_DAY = REDIS_KEY_EXPIRES_ONE_MIN * 60 * 24;
     public static final Integer REDIS_KEY_EXPIRES_ONE_HOUR = REDIS_KEY_EXPIRES_ONE_MIN * 60;
     public static final Long MB = 1024 * 1024L;
-    /**
-     * 过期时间5分钟
-     */
     public static final Integer REDIS_KEY_EXPIRES_FIVE_MIN = REDIS_KEY_EXPIRES_ONE_MIN * 5;
+
+    /**
+     * Session 相关
+     */
+    public static final String SESSION_KEY = "session_key";
 }

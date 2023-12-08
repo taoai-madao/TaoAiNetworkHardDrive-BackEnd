@@ -2,6 +2,7 @@ package com.taoaipan.service;
 
 import java.util.List;
 
+import com.taoaipan.entity.dto.SessionWebUserDto;
 import com.taoaipan.entity.query.UserInfoQuery;
 import com.taoaipan.entity.po.UserInfo;
 import com.taoaipan.entity.vo.PaginationResultVO;
@@ -133,8 +134,10 @@ public interface UserInfoService {
     void register(String email, String nickName, String password, String emailCode);
 
 	/**
-	 * 生成用户不重复 id
-	 * @return 用户id
+	 * 用户登录
+	 * @param email 邮箱
+	 * @param password 密码
+	 * @return 脱敏用户对象
 	 */
-	String userIdCreate();
+	SessionWebUserDto login(String email, String password);
 }

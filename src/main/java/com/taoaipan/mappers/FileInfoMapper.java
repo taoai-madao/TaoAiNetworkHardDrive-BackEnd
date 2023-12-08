@@ -25,4 +25,10 @@ public interface FileInfoMapper<T,P> extends BaseMapper<T,P> {
 	 T selectByFileIdAndUserId(@Param("fileId") String fileId,@Param("userId") String userId);
 
 
+	/**
+	 * 查询用户使用空间
+	 * @param userId 用户id
+	 * @return 已使用空间
+	 */
+	Long selectUseSpace(@Param("userId") String userId);
 }

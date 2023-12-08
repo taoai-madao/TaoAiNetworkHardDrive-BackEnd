@@ -4,6 +4,7 @@ import com.taoaipan.annotation.GlobalInterceptor;
 import com.taoaipan.annotation.VerifyParam;
 import com.taoaipan.entity.constants.Constants;
 import com.taoaipan.entity.dto.CreateImageCode;
+import com.taoaipan.entity.dto.SessionWebUserDto;
 import com.taoaipan.entity.enums.VerifyRegexEnum;
 import com.taoaipan.entity.po.EmailCode;
 import com.taoaipan.entity.vo.ResponseVO;
@@ -89,6 +90,16 @@ public class AccountController extends ABaseController {
         }
     }
 
+    /**
+     * 用户注册
+     * @param session session
+     * @param email 邮箱
+     * @param nickName 昵称
+     * @param password 密码
+     * @param checkCode 验证啊
+     * @param emailCode 邮箱验证码
+     * @return VO对象
+     */
     @RequestMapping("/register")
     @GlobalInterceptor(checkLogin = false, checkParams = true)
     public ResponseVO register(HttpSession session,
@@ -103,6 +114,33 @@ public class AccountController extends ABaseController {
             }
             userInfoService.register(email, nickName, password, emailCode);
             return getSuccessResponseVO(null);
+        } finally {
+            session.removeAttribute(Constants.CHECK_CODE_KEY);
+        }
+    }
+
+    /**
+     * 用户登录
+     * @param session session对象
+     * @param email 邮箱
+     * @param password 密码
+     * @param checkCode 验证码
+     * @return VO对象
+     */
+    @RequestMapping("/login")
+    @GlobalInterceptor(checkLogin = false, checkParams = true)
+    public ResponseVO login(HttpSession session,
+                            @VerifyParam(required = true) String email,
+                            @VerifyParam(required = true) String password,
+                            @VerifyParam(required = true) String checkCode){
+        try{
+            if (!checkCode.equalsIgnoreCase((String) session.getAttribute(Constants.CHECK_CODE_KEY))){
+                throw new BusinessException("图片验证码不正确");
+            }
+            SessionWebUserDto sessionWebUserDto =  userInfoService.login(email, password);
+            // 将用户脱敏DTO对象存入 Session
+            session.setAttribute(Constants.SESSION_KEY, sessionWebUserDto);
+            return getSuccessResponseVO(sessionWebUserDto);
         } finally {
             session.removeAttribute(Constants.CHECK_CODE_KEY);
         }

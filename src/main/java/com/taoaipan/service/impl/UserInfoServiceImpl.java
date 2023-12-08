@@ -1,28 +1,30 @@
 package com.taoaipan.service.impl;
 
-import java.util.Date;
-import java.util.List;
-
-import javax.annotation.Resource;
-
 import com.taoaipan.component.RedisComponent;
+import com.taoaipan.entity.config.AppConfig;
 import com.taoaipan.entity.constants.Constants;
+import com.taoaipan.entity.dto.SessionWebUserDto;
 import com.taoaipan.entity.dto.SysSettingsDto;
-import com.taoaipan.entity.enums.UserStatusEnum;
-import com.taoaipan.exception.BusinessException;
-import com.taoaipan.service.EmailCodeService;
-import org.apache.catalina.User;
-import org.springframework.stereotype.Service;
-
+import com.taoaipan.entity.dto.UserSpaceDto;
 import com.taoaipan.entity.enums.PageSize;
-import com.taoaipan.entity.query.UserInfoQuery;
+import com.taoaipan.entity.enums.UserStatusEnum;
 import com.taoaipan.entity.po.UserInfo;
-import com.taoaipan.entity.vo.PaginationResultVO;
 import com.taoaipan.entity.query.SimplePage;
+import com.taoaipan.entity.query.UserInfoQuery;
+import com.taoaipan.entity.vo.PaginationResultVO;
+import com.taoaipan.exception.BusinessException;
 import com.taoaipan.mappers.UserInfoMapper;
+import com.taoaipan.service.EmailCodeService;
+import com.taoaipan.service.FileInfoService;
 import com.taoaipan.service.UserInfoService;
 import com.taoaipan.utils.StringTools;
+import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Resource;
+import java.util.Date;
+import java.util.List;
 
 
 /**
@@ -37,6 +39,10 @@ public class UserInfoServiceImpl implements UserInfoService {
 	private EmailCodeService emailCodeService;
 	@Resource
 	private RedisComponent redisComponent;
+	@Resource
+	private AppConfig appConfig;
+	@Resource
+	private FileInfoService fileInfoService;
 
 	/**
 	 * 根据条件查询列表
@@ -250,10 +256,49 @@ public class UserInfoServiceImpl implements UserInfoService {
     }
 
 	/**
+	 * 用户登录
+	 * @param email 邮箱
+	 * @param password 密码
+	 * @return 脱敏后的用户对象
+	 */
+	@Override
+	public SessionWebUserDto login(String email, String password) {
+		UserInfo userInfo = userInfoMapper.selectByEmail(email);
+		if (userInfo == null || !userInfo.getPassword().equals(password)){
+			throw new BusinessException("账号或密码错误");
+		}
+		if (UserStatusEnum.DISABLE.getStatus().equals(userInfo.getStatus())){
+			throw new BusinessException("该账号已禁用");
+		}
+		// 更新用户最后一次登录时间
+		UserInfo updateUserInfo = new UserInfo();
+		updateUserInfo.setLastLoginTime(new Date());
+		userInfoMapper.updateByUserId(updateUserInfo, userInfo.getUserId());
+		// 用户信息脱敏返回前端
+		SessionWebUserDto sessionWebUserDto = new SessionWebUserDto();
+		sessionWebUserDto.setNickName(userInfo.getNickName());
+		sessionWebUserDto.setUserId(userInfo.getUserId());
+		// 判断用户是否是管理员, 从管理员列表判断
+		if (ArrayUtils.contains(appConfig.getAdminEmails().split(","), email)){
+			sessionWebUserDto.setAdmin(true);
+		} else {
+			sessionWebUserDto.setAdmin(false);
+		}
+		// 用户空间设置
+		UserSpaceDto userSpaceDto = new UserSpaceDto();
+		// 用户使用空间总和
+		userSpaceDto.setUseSpace(fileInfoService.getUserUseSpace(userInfo.getUserId()));
+		// 用户总空间
+		userSpaceDto.setTotalSpace(userInfo.getTotalSpace());
+		// 将用户空间情况存入Redis数据库
+		redisComponent.saveUserSpaceUse(userInfo.getUserId(), userSpaceDto);
+		return sessionWebUserDto;
+	}
+
+	/**
 	 * 生成用户不重复id
 	 * @return 用户id
 	 */
-	@Override
 	public String userIdCreate() {
 		// TODO 可以使用 Stream 进行优化这段逻辑
 		String id = StringTools.getRandomNumber(Constants.LENGTH_10);

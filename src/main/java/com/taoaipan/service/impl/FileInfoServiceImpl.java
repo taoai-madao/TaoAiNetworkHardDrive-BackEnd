@@ -127,4 +127,14 @@ public class FileInfoServiceImpl implements FileInfoService {
 	public Integer deleteFileInfoByFileIdAndUserId(String fileId, String userId) {
 		return this.fileInfoMapper.deleteByFileIdAndUserId(fileId, userId);
 	}
+
+	/**
+	 * 获取用户已使用空间大小
+	 * @param userId 用户id
+	 * @return 用户使用空间总和
+	 */
+    @Override
+    public Long getUserUseSpace(String userId) {
+        return this.fileInfoMapper.selectUseSpace(userId);
+    }
 }

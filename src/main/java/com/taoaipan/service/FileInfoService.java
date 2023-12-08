@@ -5,6 +5,7 @@ import java.util.List;
 import com.taoaipan.entity.query.FileInfoQuery;
 import com.taoaipan.entity.po.FileInfo;
 import com.taoaipan.entity.vo.PaginationResultVO;
+import org.apache.ibatis.annotations.Param;
 
 
 /**
@@ -69,4 +70,10 @@ public interface FileInfoService {
 	 */
 	Integer deleteFileInfoByFileIdAndUserId(String fileId,String userId);
 
+	/**
+	 * 获取用户已使用空间（所有文件总和）
+	 * @param userId 用户id
+	 * @return 空间大小
+  	 */
+	Long getUserUseSpace(@Param("userId") String userId);
 }

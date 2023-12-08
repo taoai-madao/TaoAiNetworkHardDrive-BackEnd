@@ -56,4 +56,5 @@ package com.taoaipan.mappers;
 	  * @param email 邮箱号
 	  */
 	 void disableEmailCode(@Param("email") String email);
+
  }

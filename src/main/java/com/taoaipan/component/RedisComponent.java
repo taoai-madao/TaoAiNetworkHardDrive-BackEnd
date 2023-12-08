@@ -2,6 +2,7 @@ package com.taoaipan.component;
 
 import com.taoaipan.entity.constants.Constants;
 import com.taoaipan.entity.dto.SysSettingsDto;
+import com.taoaipan.entity.dto.UserSpaceDto;
 import com.taoaipan.entity.po.FileInfo;
 import com.taoaipan.entity.po.UserInfo;
 import com.taoaipan.entity.query.FileInfoQuery;
@@ -51,5 +52,14 @@ public class RedisComponent {
      */
     public void saveSysSettingsDto(SysSettingsDto sysSettingsDto) {
         redisUtils.set(Constants.REDIS_KEY_SYS_SETTING, sysSettingsDto);
+    }
+
+    /**
+     * 保存用户已使用空间
+     * @param userId 用户id
+     * @param userSpaceDto 用户空间对象
+     */
+    public void saveUserSpaceUse(String userId, UserSpaceDto userSpaceDto) {
+        redisUtils.setex(Constants.REDIS_KEY_USER_SPACE_USE + userId, userSpaceDto, Constants.REDIS_KEY_EXPIRES_DAY);
     }
 }

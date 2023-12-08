@@ -75,5 +75,3 @@ ChannelBizBrandWallClient.java
 /*/rebel.xml
 
 # yml
-*.yml
-application.properties
