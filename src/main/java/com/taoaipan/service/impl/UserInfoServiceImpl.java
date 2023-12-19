@@ -296,6 +296,25 @@ public class UserInfoServiceImpl implements UserInfoService {
 	}
 
 	/**
+	 * 重置密码方法
+	 * @param email email
+	 * @param password pwd
+	 * @param emailCode 邮箱验证码
+	 */
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public void resetPwd(String email, String password, String emailCode) {
+		UserInfo userInfo = userInfoMapper.selectByEmail(email);
+		if (userInfo == null){
+			throw new BusinessException("邮箱账号不存在");
+		}
+		emailCodeService.checkCode(email, emailCode);
+		UserInfo updateInfo = new UserInfo();
+		updateInfo.setPassword(StringTools.encodeByMD5(password));
+		userInfoMapper.updateByEmail(updateInfo, email);
+	}
+
+	/**
 	 * 生成用户不重复id
 	 * @return 用户id
 	 */

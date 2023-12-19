@@ -9,6 +9,7 @@ import com.taoaipan.entity.query.FileInfoQuery;
 import com.taoaipan.entity.query.UserInfoQuery;
 import com.taoaipan.mappers.FileInfoMapper;
 import com.taoaipan.mappers.UserInfoMapper;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -61,5 +62,23 @@ public class RedisComponent {
      */
     public void saveUserSpaceUse(String userId, UserSpaceDto userSpaceDto) {
         redisUtils.setex(Constants.REDIS_KEY_USER_SPACE_USE + userId, userSpaceDto, Constants.REDIS_KEY_EXPIRES_DAY);
+    }
+
+    /**
+     * 获取用户空间
+     * @param userId
+     * @return
+     */
+    public UserSpaceDto getUserSpaceUse(String userId) {
+        UserSpaceDto spaceDto = (UserSpaceDto) redisUtils.get(Constants.REDIS_KEY_USER_SPACE_USE + userId);
+        if (spaceDto == null) {
+            spaceDto = new UserSpaceDto();
+            Long useSpace = this.fileInfoMapper.selectUseSpace(userId);
+            spaceDto.setUseSpace(useSpace);
+            spaceDto.setTotalSpace(getSysSettingsDto().getUserInitUseSpace() * Constants.MB);
+            // 用户路径+用户id 用户总空间，有效期
+            redisUtils.setex(Constants.REDIS_KEY_USER_SPACE_USE + userId, spaceDto, Constants.REDIS_KEY_EXPIRES_DAY);
+        }
+        return spaceDto;
     }
 }

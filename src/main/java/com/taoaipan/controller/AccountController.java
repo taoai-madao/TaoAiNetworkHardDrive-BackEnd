@@ -2,26 +2,29 @@ package com.taoaipan.controller;
 
 import com.taoaipan.annotation.GlobalInterceptor;
 import com.taoaipan.annotation.VerifyParam;
+import com.taoaipan.component.RedisComponent;
+import com.taoaipan.entity.config.AppConfig;
 import com.taoaipan.entity.constants.Constants;
 import com.taoaipan.entity.dto.CreateImageCode;
 import com.taoaipan.entity.dto.SessionWebUserDto;
 import com.taoaipan.entity.enums.VerifyRegexEnum;
-import com.taoaipan.entity.po.EmailCode;
 import com.taoaipan.entity.vo.ResponseVO;
 import com.taoaipan.exception.BusinessException;
 import com.taoaipan.service.EmailCodeService;
 import com.taoaipan.service.UserInfoService;
-import org.apache.ibatis.annotations.Param;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import javax.mail.Session;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * @version 1.0
@@ -40,6 +43,10 @@ public class AccountController extends ABaseController {
     private EmailCodeService emailCodeService;
     @Resource
     private UserInfoService userInfoService;
+    @Resource
+    private AppConfig appConfig;
+    @Resource
+    private RedisComponent redisComponent;
 
     /**
      * 图片验证码生成
@@ -144,5 +151,113 @@ public class AccountController extends ABaseController {
         } finally {
             session.removeAttribute(Constants.CHECK_CODE_KEY);
         }
+    }
+
+    /**
+     * 密码重置
+     * @param session session
+     * @param email email
+     * @param password pwd
+     * @param checkCode 图片验证码
+     * @param emailCode 邮箱验证码
+     * @return 响应结果
+     */
+    @RequestMapping("/resetPwd")
+    @GlobalInterceptor(checkLogin = true, checkParams = true)
+    public ResponseVO resetPwd(HttpSession session,
+                               @VerifyParam(required = true, regex = VerifyRegexEnum.EMAIL, max = 150) String email,
+                               @VerifyParam(required = true, regex = VerifyRegexEnum.PASSWORD, min = 8, max = 18) String password,
+                               @VerifyParam(required = true) String checkCode,
+                               @VerifyParam(required = true) String emailCode) {
+        try {
+            if (!checkCode.equalsIgnoreCase((String) session.getAttribute(Constants.CHECK_CODE_KEY))){
+                throw new BusinessException("图片验证码不正确");
+            }
+            userInfoService.resetPwd(email, password, emailCode);
+            return getSuccessResponseVO(null);
+        } finally {
+            session.removeAttribute(Constants.CHECK_CODE_KEY);
+        }
+    }
+
+    /**
+     * 获取用户头像
+     * @param response Http响应对象
+     * @param userId 用户id
+     */
+    @RequestMapping("/getAvatar/{userId}")
+    @GlobalInterceptor(checkLogin = false, checkParams = true)
+    public void getAvatar(HttpServletResponse response,
+                          @VerifyParam(required = true) @PathVariable("userId") String userId){
+        String avatarFolderName = Constants.FILE_FOLDER_FILE + Constants.FILE_FOLDER_AVATAR_NAME;
+        File folder = new File(appConfig.getProjectFolder() + avatarFolderName);
+        if (!folder.exists()){
+            folder.mkdirs();
+        }
+        String avatarPath = appConfig.getProjectFolder() + avatarFolderName + userId + Constants.AVATAR_SUFFIX;
+        File file = new File(avatarPath);
+        if (!file.exists()) {
+            if (!new File(appConfig.getProjectFolder() + avatarFolderName + Constants.AVATAR_DEFUALT).exists()) {
+                printNoDefaultImage(response);
+                return;
+            }
+            avatarPath = appConfig.getProjectFolder() + avatarFolderName + Constants.AVATAR_DEFUALT;
+        }
+        response.setContentType("image/jpg");
+        readFile(response, avatarPath);
+    }
+
+    /**
+     * 输出默认头像
+     * @param response 响应对象
+     */
+    private void printNoDefaultImage(HttpServletResponse response) {
+        response.setHeader(CONTENT_TYPE, CONTENT_TYPE_VALUE);
+        response.setStatus(HttpStatus.OK.value());
+        PrintWriter writer = null;
+        try {
+            writer = response.getWriter();
+            writer.print("请在头像目录下放置默认头像default_avatar.jpg");
+            writer.close();
+        } catch (Exception e) {
+            logger.error("输出无默认图失败", e);
+        } finally {
+            writer.close();
+        }
+    }
+
+    /**
+     * 获取用户信息
+     * @param session Session
+     * @return 用户信息DTO对象
+     */
+    @RequestMapping("/getUserInfo")
+    @GlobalInterceptor
+    public ResponseVO getUserInfo(HttpSession session) {
+        SessionWebUserDto sessionWebUserDto = getUserInfoFromSession(session);
+        return getSuccessResponseVO(sessionWebUserDto);
+    }
+
+    /**
+     * 获取用户空间
+     * @param session session
+     * @return 用户信息
+     */
+    @RequestMapping("/getUseSpace")
+    @GlobalInterceptor
+    public ResponseVO getUseSpace(HttpSession session) {
+        SessionWebUserDto sessionWebUserDto = getUserInfoFromSession(session);
+        return getSuccessResponseVO(redisComponent.getUserSpaceUse(sessionWebUserDto.getUserId()));
+    }
+
+    /**
+     * 用户退出
+     * @param session Session
+     * @return 响应对象
+     */
+    @RequestMapping("/logout")
+    public ResponseVO logout(HttpSession session) {
+        session.invalidate();
+        return getSuccessResponseVO(null);
     }
 }

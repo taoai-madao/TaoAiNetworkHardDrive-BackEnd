@@ -94,4 +94,19 @@ public class StringTools {
     public static final String getRandomNumber(Integer count) {
         return RandomStringUtils.random(count, false, true);
     }
+
+    /**
+     * 判断路径是否合法
+     * @param path 路径
+     * @return 布尔值
+     */
+    public static boolean pathIsOk(String path) {
+        if (StringTools.isEmpty(path)) {
+            return true;
+        }
+        if (path.contains("../") || path.contains("..\\")) {
+            return false;
+        }
+        return true;
+    }
 }

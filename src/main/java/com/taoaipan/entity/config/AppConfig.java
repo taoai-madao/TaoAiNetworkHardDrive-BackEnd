@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
  * @version 1.0
  * @Author TaoAi
  * @Date 2023/12/7 11:13
- * @description 邮件配置
+ * @description 邮件配置,获取配置文件中的各种参数
  */
 @Component("appConfig")
 public class AppConfig {

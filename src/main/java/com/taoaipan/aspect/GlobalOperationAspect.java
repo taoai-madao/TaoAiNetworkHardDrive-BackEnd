@@ -50,10 +50,18 @@ public class GlobalOperationAspect {
     @Resource
     private AppConfig appConfig;
 
+    /**
+     * 切点匹配
+     */
     @Pointcut("@annotation(com.taoaipan.annotation.GlobalInterceptor)")
     private void requestInterceptor(){
     }
 
+    /**
+     * 切点匹配前置通知
+     * @param point 切点
+     * @throws BusinessException 异常
+     */
     @Before("requestInterceptor()")
     public void interceptorDo(JoinPoint point) throws BusinessException {
         try{

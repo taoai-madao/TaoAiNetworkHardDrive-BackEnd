@@ -46,4 +46,19 @@ public class Constants {
      * Session 相关
      */
     public static final String SESSION_KEY = "session_key";
+
+    /**
+     * 文件路径
+     */
+    public static final String FILE_FOLDER_FILE = "/file/";
+    public static final String FILE_FOLDER_TEMP = "/temp/";
+    /**
+     * 头像文件文件夹
+     */
+    public static final String FILE_FOLDER_AVATAR_NAME = "avatar/";
+    /**
+     * 头像文件后缀, 默认头像
+     */
+    public static final String AVATAR_SUFFIX = ".jpg";
+    public static final String AVATAR_DEFUALT = "default_avatar.jpg";
 }

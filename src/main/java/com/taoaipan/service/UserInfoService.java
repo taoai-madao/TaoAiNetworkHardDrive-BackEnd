@@ -140,4 +140,12 @@ public interface UserInfoService {
 	 * @return 脱敏用户对象
 	 */
 	SessionWebUserDto login(String email, String password);
+
+	/**
+	 * 重置密码
+	 * @param email email
+	 * @param password pwd
+	 * @param emailCode 邮箱验证码
+	 */
+	void resetPwd(String email, String password, String emailCode);
 }
