@@ -8,16 +8,19 @@ import com.taoaipan.entity.constants.Constants;
 import com.taoaipan.entity.dto.CreateImageCode;
 import com.taoaipan.entity.dto.SessionWebUserDto;
 import com.taoaipan.entity.enums.VerifyRegexEnum;
+import com.taoaipan.entity.po.UserInfo;
 import com.taoaipan.entity.vo.ResponseVO;
 import com.taoaipan.exception.BusinessException;
 import com.taoaipan.service.EmailCodeService;
 import com.taoaipan.service.UserInfoService;
+import com.taoaipan.utils.StringTools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -260,4 +263,51 @@ public class AccountController extends ABaseController {
         session.invalidate();
         return getSuccessResponseVO(null);
     }
+
+    /**
+     * 用户头像上传
+     * @param session Session
+     * @param avatar 头像
+     * @return 响应对象
+     */
+    public ResponseVO updateUserAvatar(HttpSession session,
+                                       MultipartFile avatar) {
+        SessionWebUserDto webUserDto = getUserInfoFromSession(session);
+        String baseFolder = appConfig.getProjectFolder() + Constants.FILE_FOLDER_FILE;
+        File targetFileFolder = new File(baseFolder + Constants.FILE_FOLDER_AVATAR_NAME);
+        if (!targetFileFolder.exists()) {
+            targetFileFolder.mkdirs();
+        }
+        File targetFile = new File(targetFileFolder.getPath() + "/" + webUserDto.getUserId() + Constants.AVATAR_SUFFIX);
+        try {
+            avatar.transferTo(targetFile);
+        } catch (Exception e) {
+            logger.error("上传头像失败", e);
+        }
+
+        UserInfo userInfo = new UserInfo();
+        userInfo.setQqAvatar("");
+        userInfoService.updateUserInfoByUserId(userInfo, webUserDto.getUserId());
+        webUserDto.setAvatar(null);
+        session.setAttribute(Constants.SESSION_KEY, webUserDto);
+        return getSuccessResponseVO(null);
+    }
+
+    /**
+     * 更新密码
+     * @param session session
+     * @param password pwd
+     * @return 响应对象
+     */
+    @RequestMapping("/updatePassword")
+    @GlobalInterceptor(checkParams = true)
+    public ResponseVO updatePassword(HttpSession session,
+                                     @VerifyParam(required = true, regex = VerifyRegexEnum.PASSWORD, min = 8, max = 18) String password) {
+        SessionWebUserDto sessionWebUserDto = getUserInfoFromSession(session);
+        UserInfo userInfo = new UserInfo();
+        userInfo.setPassword(StringTools.encodeByMD5(password));
+        userInfoService.updateUserInfoByUserId(userInfo, sessionWebUserDto.getUserId());
+        return getSuccessResponseVO(null);
+    }
+
 }
